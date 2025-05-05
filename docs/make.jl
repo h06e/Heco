@@ -18,6 +18,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/h06e/Heco.jl",
+    repo="github.com/h06e/Heco",
     devbranch="main",
 )
