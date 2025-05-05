@@ -62,7 +62,7 @@ end
 
 function update_contact!(disk_list::Vector{Disk}, stiffness::Float64)
     d_min_meas = 1e9
-    
+
     for is1 in eachindex(disk_list)
         for is2 in eachindex(disk_list)
             if is1 != is2
@@ -163,27 +163,27 @@ end
 
 
 
-"""
-Function that generate a 2D microstructure with random stacking disks.
-Inputs:
-- nf: the number of disks
-- f: the volume fraction of disks
-- d_min: the minimal distance bewteen two disks (x disk radius)
-- Np: the returned discretization
-other inputs
-- seed: specify seed for reproductibility
-- damping: damping slowing the particules
-- stiffness: stiffness of the contact during collision
-- initial_speed: initial velocities of the particles at the fist step
-- growing_rate: number of steps within the particles will grow
-- it_max: maximal number of iteration to solve the contact
-- tol: tolerance distance of the contact
-- verbose: print simulation data
+# """
+# Function that generate a 2D microstructure with random stacking disks.
+# Inputs:
+# - nf: the number of disks
+# - f: the volume fraction of disks
+# - d_min: the minimal distance bewteen two disks (x disk radius)
+# - Np: the returned discretization
+# other inputs
+# - seed: specify seed for reproductibility
+# - damping: damping slowing the particules
+# - stiffness: stiffness of the contact during collision
+# - initial_speed: initial velocities of the particles at the fist step
+# - growing_rate: number of steps within the particles will grow
+# - it_max: maximal number of iteration to solve the contact
+# - tol: tolerance distance of the contact
+# - verbose: print simulation data
 
-Outputs
-- info: dictonnary that contain data about the microstructure
-- img: final microstructure
-"""
+# Outputs
+# - info: dictonnary that contain data about the microstructure
+# - img: final microstructure
+# """
 function gen_2d_random_disks(nf::Int64, f::Float64, d_min::Float64, Np::Int64;
     damping=0.1::Float64,
     stiffness=1.0::Float64,
