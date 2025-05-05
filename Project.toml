@@ -1,0 +1,13 @@
+name = "Heco"
+uuid = "7443d7ac-1778-42f4-acb5-2a0b7505d828"
+authors = ["Robin Valmalette"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.11"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
