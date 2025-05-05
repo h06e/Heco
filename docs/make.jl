@@ -1,3 +1,6 @@
+push!(LOAD_PATH,"../src/")
+push!(LOAD_PATH,"../docs/")
+
 using Heco
 using Documenter
 

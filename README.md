@@ -1,6 +1,4 @@
 
----
-
 # Heco.jl
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://h06e.github.io/Heco.jl/stable/)
@@ -58,6 +56,3 @@ The solver is based on the classical Moulinec and Suquet (1994) scheme. Key feat
 
 Please note that this project may be phased out in favor of a newer Julia-based code currently under development at LMA. Contributions are still welcome during this transition period.
 
----
-
-Would you like me to help format a `CITATION.bib` file for the references you want to include?
