@@ -23,6 +23,7 @@ function homogenize(
 )
 
 
+
     if isnothing(c0)
         c0 = choose_c0(material_list, scheme, false)
     end
@@ -79,6 +80,7 @@ function homogenize(
         sigf = zeros(FT, 6, size(phases)..., length(loading_list))
     end
 
+
     for loading_index in eachindex(loading_list)
         loading = loading_list[loading_index]
 
@@ -97,28 +99,34 @@ function homogenize(
             epsf[:, :, :, :, loading_index] .= Array(eps)
             sigf[:, :, :, :, loading_index] .= Array(sig)
         end
-
-        # if save_fields
-        #     #todo save to vtk or any
-        #     @info "save_fields option not implemented yet"
-        # end
-
-
     end
-
+    
+ 
     output = Dict(
         :steps => step_hist,
         :eps => keep_fields ? epsf : nothing,
         :sig => keep_fields ? sigf : nothing,
     )
 
-    # return output
+    return output
 end
 
 
 
 
 function fixed_point_step_solver!(r, eps, sig, EPS, SIG, phases, material_list, tols::Vector, loading_type::LoadingType, loading::Vector, c0, P::AbstractFFTs.Plan, Pinv::AbstractFFTs.Plan, xi1, xi2, xi3, tau, Nit_max::Integer, verbose_fft::Bool, cartesian)
+
+
+    chrono_tfft1 = 0.0
+    chrono_tgammafft = 0.0
+    chrono_tfft2 = 0.0
+
+    chrono_gamma0 = 0.0
+    chrono_majeps = 0.0
+    chrono_sig = 0.0
+    chrono_err = 0.0
+    chrono_mean = 0.0
+
 
     if loading_type == Strain
         add_mean_value!(eps, loading .- EPS, cartesian)
@@ -138,6 +146,7 @@ function fixed_point_step_solver!(r, eps, sig, EPS, SIG, phases, material_list, 
     err_load = 1e9
     it = 0
 
+    tit = @elapsed begin
     while (err_equi > tol_equi || err_load > tol_load) && it < Nit_max
         it += 1
 
@@ -147,16 +156,18 @@ function fixed_point_step_solver!(r, eps, sig, EPS, SIG, phases, material_list, 
             new_mean_eps = compute_eps(loading - SIG, c0)
         end
 
-        gamma0!(P, Pinv, xi1, xi2, xi3, tau, sig, c0, new_mean_eps)
+        t_gamma0 = CUDA.@elapsed tfft1, tgammafft, tfft2 = gamma0!(P, Pinv, xi1, xi2, xi3, tau, sig, c0, new_mean_eps)
 
-        (eps isa CuArray) ? (CUDA.@. eps .+= sig) : (eps .+= sig)
+        t_majeps = CUDA.@elapsed (eps isa CuArray) ? (CUDA.@. eps .+= sig) : (eps .+= sig)
 
-        err_equi = eq_err(sig, cartesian, r)
+        t_equi = CUDA.@elapsed err_equi = eq_err(sig, cartesian, r)
 
-        rdc!(sig, eps, phases, material_list, cartesian)
+        t_rdc = CUDA.@elapsed rdc!(sig, eps, phases, material_list, cartesian)
 
+        t_mean = CUDA.@elapsed begin
         EPS .= meanfield(eps)
         SIG .= meanfield(sig)
+        end
 
         if loading_type == Strain
             err_load = 0.0
@@ -166,7 +177,32 @@ function fixed_point_step_solver!(r, eps, sig, EPS, SIG, phases, material_list, 
 
         verbose_fft ? print_iteration(it, EPS, SIG, err_equi, err_load, tols) : nothing
         isnan(err_equi) ? (@error "Error equals NaN -> Divergence (bad choice for c0)") : nothing
+
+
+        chrono_tfft1 += tfft1
+        chrono_tgammafft += tgammafft
+        chrono_tfft2 += tfft2
+
+        chrono_gamma0 += t_gamma0
+        chrono_majeps += t_majeps
+        chrono_sig += t_rdc
+        chrono_err += t_equi
+        chrono_mean += t_mean
     end
+    end
+    println("")
+    println("Temps total $tit")
+    println("")
+    println("chrono_tfft1  = $chrono_tfft1")
+    println("chrono_tgammafft = $chrono_tgammafft")
+    println("chrono_tfft2 = $chrono_tfft2")
+    println("")
+    println("chrono_gamma0 (+ fft + ifft) = $chrono_gamma0")
+    println("chrono_majeps = $chrono_majeps")
+    println("chrono_sig0 = $chrono_sig")
+    println("chrono_err = $chrono_err")
+    println("chrono_mean = $chrono_mean")
+
 
     return it, err_equi, err_load
 

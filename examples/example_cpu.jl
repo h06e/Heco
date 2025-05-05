@@ -11,13 +11,13 @@ function main()
     dmin=0.1
     Np=128
 
-    info, micro = Micro.gen_2d_random_disks(nf, f, dmin, Np, seed=123)
+    # info, micro = Micro.gen_2d_random_disks(nf, f, dmin, Np, seed=123)
+    micro = rand((1,2),Np,Np,Np)
 
     loading_list = [[1.0,0.,0.,0.,0.,0.]]
     time_list = [Float64(i) for i in eachindex(loading_list)]
 
-    tols = [1e-6, 1e-4]
-
+    tols = [1e-20, 1e-4]
 
     sol = homogenize(
         micro,
@@ -28,12 +28,11 @@ function main()
         tols;
         verbose_fft=true,
         verbose_step=true,
-        Nit_max=500,
+        Nit_max=50,
         precision=Simple,
         c0=nothing,
-        gpu=false
+        gpu=true
     )
-
 
 end
 

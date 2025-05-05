@@ -14,7 +14,7 @@ struct Hist{T}
     end
 end
 
-function update_hist!(hist::Hist, i::Int64, E::Vector, S::Vector, ES::Float64, equi::Float64, load::Float64, it::Int64)
+function update_hist!(hist::Hist, i::Int64, E::Vector, S::Vector, ES::Number, equi::Number, load::Number, it::Int64)
 
     hist.E[:, i] .= E
     hist.S[:, i] .= S

@@ -287,8 +287,9 @@ end
 
 function gamma0!(P::AbstractFFTs.Plan, Pinv::AbstractFFTs.Plan, xi1::CuArray, xi2::CuArray, xi3::CuArray, tau::CuArray{C,4}, sig::CuArray{T,4}, c0::Elastic, mean_value::Vector) where {C<:Complex, T<:Number}
 
-    CUDA.CUFFT.mul!(tau, P, sig)
+    tfft = CUDA.@elapsed CUDA.CUFFT.mul!(tau, P, sig)
 
+    tgamma =  CUDA.@elapsed begin
     N = size(sig)
     N = N |> cu
     NNN =  N[2]*N[3]*N[4]
@@ -321,8 +322,10 @@ function gamma0!(P::AbstractFFTs.Plan, Pinv::AbstractFFTs.Plan, xi1::CuArray, xi
     CUDA.@allowscalar tau[5, 1, 1, 1] = mean_value[5] * NNN
     CUDA.@allowscalar tau[6, 1, 1, 1] = mean_value[6] * NNN
     
+    end
 
-    CUDA.CUFFT.mul!(sig, Pinv, tau)
+    tifft = CUDA.@elapsed CUDA.CUFFT.mul!(sig, Pinv, tau)
+    return tfft, tgamma, tifft
 end
 
 
