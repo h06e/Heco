@@ -60,7 +60,16 @@ function choose_c0(material_list::Vector{<:Elastic}, scheme::Scheme, forceIE::Bo
               sqrt(minimum(mu_list) * maximum(mu_list))
         return IE(kappa=k0, mu=mu0)
     else
-        isnothing(x0) ? x0 = mat2x(material_list[1], forceIE) : nothing
+
+        k_av = sum(IE2ITE(mat).k for mat in material_list)/length(material_list)
+        l_av = sum(IE2ITE(mat).l for mat in material_list)/length(material_list)
+        m_av = sum(IE2ITE(mat).m for mat in material_list)/length(material_list)
+        n_av = sum(IE2ITE(mat).n for mat in material_list)/length(material_list)
+        p_av = sum(IE2ITE(mat).p for mat in material_list)/length(material_list)
+
+        av_mat = ITE(k=k_av, l=l_av, m=m_av, n=n_av, p=p_av)
+
+        isnothing(x0) ? x0 = mat2x(av_mat, forceIE) : nothing
         costfunc = build_costfunc(material_list, scheme, forceIE)
         result = optimize(costfunc, x0, NelderMead())
         x = Optim.minimizer(result)
