@@ -21,7 +21,7 @@ First, install [Julia](https://julialang.org/).
 To install **Heco.jl**, run the following command in the Julia REPL:
 
 ```julia
-julia> ]add "https://github.com/h06e/Heco.jl"
+julia> ]add "https://github.com/h06e/Heco"
 ```
 
 > **Note:** GPU acceleration requires an NVIDIA GPU with CUDA support. If no compatible GPU is available, the package can still be used via the CPU implementation. Some warning messages may appear when running in CPU-only mode.

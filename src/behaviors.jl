@@ -2,6 +2,7 @@ using Parameters
 using CUDA
 using Adapt
 
+export Elastic
 abstract type Elastic end
 
 export IE
