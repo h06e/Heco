@@ -1,11 +1,16 @@
 
+
 # Heco.jl
 
-**Heco.jl** (Homogenization of Elastic COmposite materials) is a Julia package for performing homogenization computations on multi-phase materials. It includes both CPU and GPU-accelerated implementations.
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15349930.svg)](https://doi.org/10.5281/zenodo.15349930)
 
-While the package is generally applicable to various materials, its development was driven by the need for features specific to unidirectional composites with transversely isotropic fibers (e.g., carbon fibers).
+**Heco.jl** (Homogenization of Elastic COmposite materials) is a Julia package for performing FFT-based linear homogenization of multi-phase elastic materials. It supports both real and complex materials, with efficient implementations for CPU and GPU architectures.
 
-If you find **Heco.jl** useful in your research or projects, please consider citing the following references (or see `CITATION.bib`)
+Although **Heco.jl** is applicable to a wide range of materials, it was initially developed with a focus on unidirectional composites featuring transversely isotropic fibers—such as carbon-fiber-reinforced systems.
+
+If you use **Heco.jl** in your work, please consider citing the following:
+
+> Valmalette, R. (2025). *Heco.jl: A Real and Complex CPU–GPU Solver for FFT-Based Linear Homogenization*. Zenodo. [https://doi.org/10.5281/zenodo.15349930](https://doi.org/10.5281/zenodo.15349930)
 
 ---
 
