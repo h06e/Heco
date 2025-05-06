@@ -181,7 +181,7 @@ function convert_precision(mat::ITE{T}, precison::Precision) where {T<:Number}
     end
 end
 
-function convert_precision(vect_mat::Vector{Elastic}, precision::Precision)
+function convert_precision(vect_mat::Vector{<:Elastic}, precision::Precision)
     return [convert_precision(m, precision) for m in vect_mat]
 end
 
@@ -191,91 +191,52 @@ end
 
 
 
+function rdc!(
+    sig::Array{T,4},
+    eps::Array{T,4},
+    phases::Array{<:Integer,3},
+    material_list::Vector{<:Elastic},
+    args...
+) where {T<:Number}
+    N1, N2, N3, _ = size(eps)
 
-function rdc!(sig::Array{T,4}, eps::Array{T,4}, phases::Array{<:Integer,3}, material_list::Vector{<:Elastic}, args...) where {T<:Number}
-    _, N1, N2, N3 = size(eps)
-    @inbounds begin
-        for k in 1:N3
-            for j in 1:N2
-                for i in 1:N1
+    @inbounds for k in 1:N3, j in 1:N2, i in 1:N1
+        mat = material_list[Int(phases[i, j, k])]
 
-                    mat = material_list[phases[i, j, k]]
+        k_, m, l, n, p = mat.k, mat.m, mat.l, mat.n, mat.p
 
-                    if mat isa IE
-
-                        tre = eps[1, i, j, k] + eps[2, i, j, k] + eps[3, i, j, k]
-
-                        sig[1, i, j, k] = tre * mat.lambda + eps[1, i, j, k] * 2 * mat.mu
-                        sig[2, i, j, k] = tre * mat.lambda + eps[2, i, j, k] * 2 * mat.mu
-                        sig[3, i, j, k] = tre * mat.lambda + eps[3, i, j, k] * 2 * mat.mu
-                        sig[4, i, j, k] = eps[4, i, j, k] * 2 * mat.mu
-                        sig[5, i, j, k] = eps[5, i, j, k] * 2 * mat.mu
-                        sig[6, i, j, k] = eps[6, i, j, k] * 2 * mat.mu
-
-                    elseif mat isa ITE
-
-                        sig[1, i, j, k] = (mat.k + mat.m) * eps[1, i, j, k] + (mat.k - mat.m) * eps[2, i, j, k] + mat.l * eps[3, i, j, k]
-                        sig[2, i, j, k] = (mat.k - mat.m) * eps[1, i, j, k] + (mat.k + mat.m) * eps[2, i, j, k] + mat.l * eps[3, i, j, k]
-                        sig[3, i, j, k] = mat.l * eps[1, i, j, k] + mat.l * eps[2, i, j, k] + mat.n * eps[3, i, j, k]
-                        sig[4, i, j, k] = 2 * mat.p * eps[4, i, j, k]
-                        sig[5, i, j, k] = 2 * mat.p * eps[5, i, j, k]
-                        sig[6, i, j, k] = 2 * mat.m * eps[6, i, j, k]
-
-                    else
-                        @error "material is either IE or ITE."
-                    end
-                end
-            end
-        end
+        e1, e2, e3 = eps[i, j, k, 1], eps[i, j, k, 2], eps[i, j, k, 3]
+        sig[i, j, k, 1] = (k_ + m) * e1 + (k_ - m) * e2 + l * e3
+        sig[i, j, k, 2] = (k_ - m) * e1 + (k_ + m) * e2 + l * e3
+        sig[i, j, k, 3] = l * e1 + l * e2 + n * e3
+        sig[i, j, k, 4] = 2 * p * eps[i, j, k, 4]
+        sig[i, j, k, 5] = 2 * p * eps[i, j, k, 5]
+        sig[i, j, k, 6] = 2 * m * eps[i, j, k, 6]
     end
 end
 
-
-
 function rdc_inv!(eps::Array{T,4}, sig::Array{T,4}, phases::Array{<:Integer,3}, material_list::Vector{<:Elastic}) where {T<:Number}
 
-    _, N1, N2, N3 = size(eps)
-    @inbounds begin
-        for k in 1:N3
-            for j in 1:N2
-                for i in 1:N1
+    N1, N2, N3, _ = size(eps)
+    @inbounds for k in 1:N3, j in 1:N2, i in 1:N1
 
-                    mat = material_list[phases[i, j, k]]
+        mat = material_list[phases[i, j, k]]
 
-                    if mat isa IE
+        s11 = 1 / mat.Et
+        s33 = 1 / mat.El
+        s12 = -mat.nut / mat.Et
+        s13 = -mat.nul / mat.El
+        s44 = 1.0 / 2.0 / mat.mul
+        s66 = 1.0 / 2.0 / mat.mut
 
-                        trs = sig[1] + sig[2] + sig[3]
-                        unpnusE = (1 + mat.nu) / (mat.E)
-                        mnusE = -mat.nu / mat.E
-                        eps[1, i, j, k] = unpnusE * sig[1, i, j, k] + mnusE * trs
-                        eps[2, i, j, k] = unpnusE * sig[2, i, j, k] + mnusE * trs
-                        eps[3, i, j, k] = unpnusE * sig[3, i, j, k] + mnusE * trs
-                        eps[4, i, j, k] = unpnusE * sig[4, i, j, k]
-                        eps[5, i, j, k] = unpnusE * sig[5, i, j, k]
-                        eps[6, i, j, k] = unpnusE * sig[6, i, j, k]
+        eps[i, j, k, 1] = s11 * sig[i, j, k, 1] + s12 * sig[i, j, k, 2] + s13 * sig[i, j, k, 3]
+        eps[i, j, k, 2] = s12 * sig[i, j, k, 1] + s11 * sig[i, j, k, 2] + s13 * sig[i, j, k, 3]
+        eps[i, j, k, 3] = s13 * sig[i, j, k, 1] + s13 * sig[i, j, k, 2] + s33 * sig[i, j, k, 3]
+        eps[i, j, k, 4] = s44 * sig[i, j, k, 4]
+        eps[i, j, k, 5] = s44 * sig[i, j, k, 5]
+        eps[i, j, k, 6] = s66 * sig[i, j, k, 6]
 
-                    elseif mat isa ITE
 
-                        s11 = 1 / mat.Et
-                        s33 = 1 / mat.El
-                        s12 = -mat.nut / mat.Et
-                        s13 = -mat.nul / mat.El
-                        s44 = 1.0 / 2.0 / mat.mul
-                        s66 = 1.0 / 2.0 / mat.mut
-
-                        eps[1, i, j, k] = s11 * sig[1, i, j, k] + s12 * sig[2, i, j, k] + s13 * sig[3, i, j, k]
-                        eps[2, i, j, k] = s12 * sig[1, i, j, k] + s11 * sig[2, i, j, k] + s13 * sig[3, i, j, k]
-                        eps[3, i, j, k] = s13 * sig[1, i, j, k] + s13 * sig[2, i, j, k] + s33 * sig[3, i, j, k]
-                        eps[4, i, j, k] = s44 * sig[4, i, j, k]
-                        eps[5, i, j, k] = s44 * sig[5, i, j, k]
-                        eps[6, i, j, k] = s66 * sig[6, i, j, k]
-
-                    else
-                        @error "material is either IE or ITE."
-                    end
-                end
-            end
-        end
     end
 end
 
@@ -366,12 +327,12 @@ function rdcgpu!(sig, eps, phases, material_list, cartesian, NNN)
 
         mat = material_list[phases[i]]
 
-        sig[1, i1, i2, i3] = (mat.k + mat.m) * eps[1, i1, i2, i3] + (mat.k - mat.m) * eps[2, i1, i2, i3] + mat.l * eps[3, i1, i2, i3]
-        sig[2, i1, i2, i3] = (mat.k - mat.m) * eps[1, i1, i2, i3] + (mat.k + mat.m) * eps[2, i1, i2, i3] + mat.l * eps[3, i1, i2, i3]
-        sig[3, i1, i2, i3] = mat.l * eps[1, i1, i2, i3] + mat.l * eps[2, i1, i2, i3] + mat.n * eps[3, i1, i2, i3]
-        sig[4, i1, i2, i3] = 2 * mat.p * eps[4, i1, i2, i3]
-        sig[5, i1, i2, i3] = 2 * mat.p * eps[5, i1, i2, i3]
-        sig[6, i1, i2, i3] = 2 * mat.m * eps[6, i1, i2, i3]
+        sig[i1, i2, i3, 1] = (mat.k + mat.m) * eps[i1, i2, i3, 1] + (mat.k - mat.m) * eps[i1, i2, i3, 2] + mat.l * eps[i1, i2, i3, 3]
+        sig[i1, i2, i3, 2] = (mat.k - mat.m) * eps[i1, i2, i3, 1] + (mat.k + mat.m) * eps[i1, i2, i3, 2] + mat.l * eps[i1, i2, i3, 3]
+        sig[i1, i2, i3, 3] = mat.l * eps[i1, i2, i3, 1] + mat.l * eps[i1, i2, i3, 2] + mat.n * eps[i1, i2, i3, 3]
+        sig[i1, i2, i3, 4] = 2 * mat.p * eps[i1, i2, i3, 4]
+        sig[i1, i2, i3, 5] = 2 * mat.p * eps[i1, i2, i3, 5]
+        sig[i1, i2, i3, 6] = 2 * mat.m * eps[i1, i2, i3, 6]
 
     end
     return nothing
@@ -395,12 +356,13 @@ function rdcinvgpu!(eps, sig, phases, material_list, cartesian, NNN)
         s44 = 1.0 / 2.0 / mat.mul
         s66 = 1.0 / 2.0 / mat.mut
 
-        eps[1, i1, i2, i3] = s11 * sig[1, i1, i2, i3] + s12 * sig[2, i1, i2, i3] + s13 * sig[3, i1, i2, i3]
-        eps[2, i1, i2, i3] = s12 * sig[1, i1, i2, i3] + s11 * sig[2, i1, i2, i3] + s13 * sig[3, i1, i2, i3]
-        eps[3, i1, i2, i3] = s13 * sig[1, i1, i2, i3] + s13 * sig[2, i1, i2, i3] + s33 * sig[3, i1, i2, i3]
-        eps[4, i1, i2, i3] = s44 * sig[4, i1, i2, i3]
-        eps[5, i1, i2, i3] = s44 * sig[5, i1, i2, i3]
-        eps[6, i1, i2, i3] = s66 * sig[6, i1, i2, i3]
+        eps[i1, i2, i3, 1] = s11 * sig[i1, i2, i3, 1] + s12 * sig[i1, i2, i3, 2] + s13 * sig[i1, i2, i3, 3]
+        eps[i1, i2, i3, 2] = s12 * sig[i1, i2, i3, 1] + s11 * sig[i1, i2, i3, 2] + s13 * sig[i1, i2, i3, 3]
+        eps[i1, i2, i3, 3] = s13 * sig[i1, i2, i3, 1] + s13 * sig[i1, i2, i3, 2] + s33 * sig[i1, i2, i3, 3]
+        eps[i1, i2, i3, 4] = s44 * sig[i1, i2, i3, 4]
+        eps[i1, i2, i3, 5] = s44 * sig[i1, i2, i3, 5]
+        eps[i1, i2, i3, 6] = s66 * sig[i1, i2, i3, 6]
+
     end
     return nothing
 end

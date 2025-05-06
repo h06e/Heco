@@ -72,12 +72,12 @@ function update_contact!(disk_list::Vector{Disk}, stiffness::Float64)
                 k1 = round(s1.x[1] - s2.x[1])
                 k2 = round(s1.x[2] - s2.x[2])
 
-                closestB2A_dist2 = sum((s1.x - s2.x .- [k1,k2]) .^2)
+                closestB2A_dist2 = sum((s1.x - s2.x .- [k1, k2]) .^ 2)
                 d = sqrt(closestB2A_dist2)
                 d_min_meas = min(d_min_meas, d)
 
                 if closestB2A_dist2 <= (2 * s1.r)^2
-                    normal = s2.x + [k1,k2] - s1.x
+                    normal = s2.x + [k1, k2] - s1.x
                     overlap = 2 * s1.r - d
                     disp = normal * stiffness / d * 0.5 * overlap
 
@@ -101,15 +101,15 @@ function update_radius!(disk_list::Vector{Disk}, radius::Float64)
 end
 
 
-function add_sphere!(img,cx,cy,r)
-    Np = size(img,1)
-    xm, xM = Int(floor(max(1,cx*Np-r*Np))), Int(ceil(min(Np,cx*Np+r*Np)))
-    ym, yM = Int(floor(max(1,cy*Np-r*Np))), Int(ceil(min(Np,cy*Np+r*Np)))
+function add_sphere!(img, cx, cy, r)
+    Np = size(img, 1)
+    xm, xM = Int(floor(max(1, cx * Np - r * Np))), Int(ceil(min(Np, cx * Np + r * Np)))
+    ym, yM = Int(floor(max(1, cy * Np - r * Np))), Int(ceil(min(Np, cy * Np + r * Np)))
     for i in xm:xM
         for j in ym:yM
-            d2=(i/Np-cx)^2+(j/Np-cy)^2
+            d2 = (i / Np - cx)^2 + (j / Np - cy)^2
             if d2 <= (r^2)
-                @inbounds img[i,j] = 1
+                @inbounds img[i, j] = 1
             end
         end
     end
@@ -121,38 +121,38 @@ function conv2array(disk_list::Vector{Disk}, Np::Int64)
 
     for s in disk_list
         cx, cy = s.x
-        
-        img = add_sphere!(img,cx,cy,s.r)
+
+        img = add_sphere!(img, cx, cy, s.r)
         if cx < s.r
             if cy < s.r
-                img = add_sphere!(img,cx+1,cy,s.r)
-                img = add_sphere!(img,cx+1,cy+1,s.r)
-                img = add_sphere!(img,cx,cy+1,s.r)
+                img = add_sphere!(img, cx + 1, cy, s.r)
+                img = add_sphere!(img, cx + 1, cy + 1, s.r)
+                img = add_sphere!(img, cx, cy + 1, s.r)
             elseif cy > 1 - s.r
-                img = add_sphere!(img,cx+1,cy,s.r)
-                img = add_sphere!(img,cx+1,cy-1,s.r)
-                img = add_sphere!(img,cx,cy-1,s.r)
+                img = add_sphere!(img, cx + 1, cy, s.r)
+                img = add_sphere!(img, cx + 1, cy - 1, s.r)
+                img = add_sphere!(img, cx, cy - 1, s.r)
             else
-                img = add_sphere!(img,cx+1,cy,s.r)
+                img = add_sphere!(img, cx + 1, cy, s.r)
             end
 
         elseif cx > 1 - s.r
             if cy < s.r
-                img = add_sphere!(img,cx-1,cy,s.r)
-                img = add_sphere!(img,cx-1,cy+1,s.r)
-                img = add_sphere!(img,cx,cy+1,s.r)
+                img = add_sphere!(img, cx - 1, cy, s.r)
+                img = add_sphere!(img, cx - 1, cy + 1, s.r)
+                img = add_sphere!(img, cx, cy + 1, s.r)
             elseif cy > 1 - s.r
-                img = add_sphere!(img,cx-1,cy,s.r)
-                img = add_sphere!(img,cx-1,cy-1,s.r)
-                img = add_sphere!(img,cx,cy-1,s.r)
+                img = add_sphere!(img, cx - 1, cy, s.r)
+                img = add_sphere!(img, cx - 1, cy - 1, s.r)
+                img = add_sphere!(img, cx, cy - 1, s.r)
             else
-                img = add_sphere!(img,cx-1,cy,s.r)
+                img = add_sphere!(img, cx - 1, cy, s.r)
             end
         else
             if cy < s.r
-                img = add_sphere!(img,cx,cy+1,s.r)
+                img = add_sphere!(img, cx, cy + 1, s.r)
             elseif cy > 1 - s.r
-                img = add_sphere!(img,cx,cy-1,s.r)
+                img = add_sphere!(img, cx, cy - 1, s.r)
             end
         end
 
@@ -194,9 +194,9 @@ function gen_2d_random_disks(nf::Int64, f::Float64, d_min::Float64, Np::Int64;
     verbose=false::Bool,
     seed=nothing::Union{Nothing,Int64})
 
-    isnothing(seed) ? (seed=rand(Int64)) : nothing
+    isnothing(seed) ? (seed = rand(Int64)) : nothing
     Random.seed!(seed)
-    
+
     if f < 0 || f > 0.92
         @error "f must be between 0 and 0.92"
         throw(ArgumentError)
@@ -240,7 +240,7 @@ function gen_2d_random_disks(nf::Int64, f::Float64, d_min::Float64, Np::Int64;
     img = ones(size(img)) .* (img .> 0)
 
     #! Compute the true fibre fraction
-    true_f = sum(img)./length(img)
+    true_f = sum(img) ./ length(img)
     true_d_min = d_min_meas / true_radius_radius - 2
 
     #! Numbering the phases bewteen 1 and  inf
@@ -249,9 +249,9 @@ function gen_2d_random_disks(nf::Int64, f::Float64, d_min::Float64, Np::Int64;
     img = map(Int32, img)
 
     info = Dict(
-        :f =>true_f,
+        :f => true_f,
         :dmin => true_d_min,
-        :Dfpix => Int(round(2*true_radius_radius*Np)),
+        :Dfpix => Int(round(2 * true_radius_radius * Np)),
     )
 
     return info, img

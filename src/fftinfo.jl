@@ -2,14 +2,14 @@ using FFTW
 
 
 function initFFT(eps::Array{T,4}) where {T<:Number}
-    Neps = size(eps)
-    N1, N2, N3 = Neps[2:end]
 
-    tau = zeros(Complex{T}, 6, div(N1, 2) + 1, N2, N3)
+    N1, N2, N3, _ = size(eps)
+
+    tau = zeros(Complex{T}, div(N1, 2) + 1, N2, N3, 6)
 
     #? FFT plans
-    P = plan_rfft(eps, (2, 3, 4))
-    Pinv = plan_irfft(tau, N1, (2, 3, 4))
+    P = plan_rfft(eps, (1, 2, 3), flags=FFTW.MEASURE)
+    Pinv = plan_irfft(tau, N1, (1, 2, 3), flags=FFTW.MEASURE)
 
     if T == Float64 || T == ComplexF64
         C = Float64
@@ -25,20 +25,18 @@ function initFFT(eps::Array{T,4}) where {T<:Number}
     xi3 .= fftfreq(N3, N3)
 
     return P, Pinv, xi1, xi2, xi3, tau
-
-    return P, Pinv, xi1, xi2, xi3, tau
 end
 
 
 function initFFT(eps::CuArray{T,4}) where {T<:Number}
-    Neps = size(eps)
-    N1, N2, N3 = Neps[2:end]
 
-    tau = CUDA.zeros(Complex{T}, 6, div(N1, 2) + 1, N2, N3)
+    N1, N2, N3, _ = size(eps)
+
+    tau = CUDA.zeros(Complex{T}, div(N1, 2) + 1, N2, N3, 6)
 
     #? FFT plans
-    P = CUDA.CUFFT.plan_rfft(eps, (2, 3, 4))
-    Pinv = CUDA.CUFFT.plan_irfft(tau, N1, (2, 3, 4))
+    P = CUDA.CUFFT.plan_rfft(eps, (1, 2, 3))
+    Pinv = CUDA.CUFFT.plan_irfft(tau, N1, (1, 2, 3))
 
     if T == Float64 || T == ComplexF64
         C = Float64
@@ -78,12 +76,12 @@ function add_mean_value_kernel!(eps, mean_value, NNN, cartesian)
         i2 = cartesian[i][2]
         i3 = cartesian[i][3]
 
-        eps[1, i1, i2, i3] += mean_value[1]
-        eps[2, i1, i2, i3] += mean_value[2]
-        eps[3, i1, i2, i3] += mean_value[3]
-        eps[4, i1, i2, i3] += mean_value[4]
-        eps[5, i1, i2, i3] += mean_value[5]
-        eps[6, i1, i2, i3] += mean_value[6]
+        eps[i1, i2, i3, 1] += mean_value[1]
+        eps[i1, i2, i3, 2] += mean_value[2]
+        eps[i1, i2, i3, 3] += mean_value[3]
+        eps[i1, i2, i3, 4] += mean_value[4]
+        eps[i1, i2, i3, 5] += mean_value[5]
+        eps[i1, i2, i3, 6] += mean_value[6]
     end
     return nothing
 end
@@ -97,10 +95,10 @@ function add_mean_value!(eps::CuArray, mean_value::Vector, cartesian)
 end
 
 function add_mean_value!(eps::Array, mean_value::Vector, args...)
-    eps[1, :, :, :] .+= mean_value[1]
-    eps[2, :, :, :] .+= mean_value[2]
-    eps[3, :, :, :] .+= mean_value[3]
-    eps[4, :, :, :] .+= mean_value[4]
-    eps[5, :, :, :] .+= mean_value[5]
-    eps[6, :, :, :] .+= mean_value[6]
+    eps[:, :, :, 1] .+= mean_value[1]
+    eps[:, :, :, 2] .+= mean_value[2]
+    eps[:, :, :, 3] .+= mean_value[3]
+    eps[:, :, :, 4] .+= mean_value[4]
+    eps[:, :, :, 5] .+= mean_value[5]
+    eps[:, :, :, 6] .+= mean_value[6]
 end

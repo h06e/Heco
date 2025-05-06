@@ -25,6 +25,9 @@ function update_hist!(hist::Hist, i::Int64, E::Vector, S::Vector, ES::Number, eq
 
 end
 
+function convert_hist(h::Hist)
+	return Dict(:E=>h.E, :S=>h.S, :ES=>h.ES, :err_equi=>h.equi, :err_load=>h.load, :it=>h.it)
+end
 
 function print_iteration(it::Int64, E::Vector{<:Real}, S::Vector{<:Real}, equi::Real, load::Real, tols::Vector{<:Real})
     printstyled("It: $it ")

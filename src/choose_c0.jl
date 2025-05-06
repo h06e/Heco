@@ -36,8 +36,8 @@ function build_costfunc(material_list, scheme::Scheme, forceIE::Bool)
                 s = max(s, svd(inv(C0) * δC).S[1])
             elseif scheme == Polarization
                 try
-                s = max(s, abs(svd(inv(δC) * C).S[1]))
-                s = max(s, abs(svd(inv(δC) * C0).S[1]))
+                    s = max(s, abs(svd(inv(δC) * C).S[1]))
+                    s = max(s, abs(svd(inv(δC) * C0).S[1]))
                 catch
                     return 1e9
                 end
@@ -47,7 +47,7 @@ function build_costfunc(material_list, scheme::Scheme, forceIE::Bool)
     end
 end
 
-function choose_c0(material_list::Vector{<:Elastic}, scheme::Scheme, forceIE::Bool; x0::Union{Nothing, <:Elastic}=nothing)
+function choose_c0(material_list::Vector{<:Elastic}, scheme::Scheme, forceIE::Bool; x0::Union{Nothing,<:Elastic}=nothing)
     if material_list isa Vector{<:IE}
         kappa_list = [abs(m.kappa) for m in material_list]
         mu_list = [abs(m.mu) for m in material_list]

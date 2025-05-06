@@ -1,9 +1,7 @@
 
 # Heco.jl
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://h06e.github.io/Heco.jl/stable/)
-
-**Heco.jl** (Homogenization of Elastic Composite materials) is a Julia package for performing homogenization computations on multi-phase materials. It includes both CPU and GPU-accelerated implementations.
+**Heco.jl** (Homogenization of Elastic COmposite materials) is a Julia package for performing homogenization computations on multi-phase materials. It includes both CPU and GPU-accelerated implementations.
 
 While the package is generally applicable to various materials, its development was driven by the need for features specific to unidirectional composites with transversely isotropic fibers (e.g., carbon fibers).
 
@@ -23,9 +21,17 @@ julia> ]add "https://github.com/h06e/Heco.jl"
 
 > **Note:** GPU acceleration requires an NVIDIA GPU with CUDA support. If no compatible GPU is available, the package can still be used via the CPU implementation. Some warning messages may appear when running in CPU-only mode.
 
-The documentation is available [here](https://h06e.github.io/Heco.jl/stable/)
+
+
+📘 **Recommendation:**  
+For a complete and interactive walkthrough, download the notebook available at:  
+`examples/basics.ipynb`  
+
+It presents a full example of using `Heco.jl`, including microstructure generation, material setup, homogenization, and result visualization.
+
 
 ---
+
 
 ## Features
 
@@ -50,9 +56,4 @@ The solver is based on the classical Moulinec and Suquet (1994) scheme. Key feat
 - Isotropic or transversely isotropic reference media (aligned along axis 3)
 - Convergence criteria following Bellis and Suquet (2019), applied to both loading and residuals
 
----
-
-## Contributing
-
-Please note that this project may be phased out in favor of a newer Julia-based code currently under development at LMA. Contributions are still welcome during this transition period.
 

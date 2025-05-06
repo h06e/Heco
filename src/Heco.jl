@@ -23,8 +23,5 @@ include("history.jl")
 
 include("solver.jl")
 
-# include("solver_cpu.jl")
-
-# include("solver_gpu.jl")
 
 end
