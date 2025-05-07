@@ -10,11 +10,11 @@ Although **Heco.jl** is applicable to a wide range of materials, it was initiall
 
 If you use **Heco.jl** in your work, please consider citing the following:
 
-> Valmalette, R. (2025). *Heco.jl: A Real and Complex CPU–GPU Solver for FFT-Based Linear Homogenization*. Zenodo. [https://doi.org/10.5281/zenodo.15349930](https://doi.org/10.5281/zenodo.15349930)
+> 📖 Valmalette, R. (2025). *Heco.jl: A Real and Complex CPU–GPU Solver for FFT-Based Linear Homogenization*. Zenodo. [https://doi.org/10.5281/zenodo.15349930](https://doi.org/10.5281/zenodo.15349930)
 
 ---
 
-## Installation
+## ⚙️ Installation
 
 First, install [Julia](https://julialang.org/).
 
@@ -24,8 +24,8 @@ To install **Heco.jl**, run the following command in the Julia REPL:
 julia> ]add "https://github.com/h06e/Heco"
 ```
 
-> **Note:** GPU acceleration requires an NVIDIA GPU with CUDA support. If no compatible GPU is available, the package can still be used via the CPU implementation. Some warning messages may appear when running in CPU-only mode.
-
+> [!tip]
+> GPU acceleration requires an NVIDIA GPU with CUDA support. If no compatible GPU is available, the package can still be used via the CPU implementation. Some warning messages may appear when running in CPU-only mode.
 
 
 📘 **Recommendation:**  
@@ -38,15 +38,16 @@ It presents a full example of using `Heco.jl`, including microstructure generati
 ---
 
 
-## Features
+## ✨ Features
 
-### Microstructure Generation
+
+### 🧩 Microstructure Generation
 
 **Heco.jl** includes a basic Representative Volume Element (RVE) generator tailored for continuous fiber composites. The generator uses a particle-based method, which is particularly efficient for high fiber volume fractions.
 
 ![RVE Generation](ressources/rve_gen.gif)
 
-### Material Behavior
+### 🛠️ Material Behavior
 
 The package currently supports linear elastic materials:
 - Isotropic
@@ -54,11 +55,11 @@ The package currently supports linear elastic materials:
 
 Elasticity tensors can be either real or complex-valued. Complex tensors are typically used for modeling viscoelastic behavior in the Laplace-Carson domain.
 
-### FFT-Based Solver
+### ⚡FFT-Based Solver
 
-The solver is based on the classical Moulinec and Suquet (1994) scheme. Key features include:
-- Strain-controlled or stress-controlled loading (non-mixed)
-- Isotropic or transversely isotropic reference media (aligned along axis 3)
-- Convergence criteria following Bellis and Suquet (2019), applied to both loading and residuals
+The solver is built upon the foundational Moulinec and Suquet (1994) scheme. Its key features include:
+- Support for strain-controlled or stress-controlled loading (non-mixed modes).
+- Compatibility with isotropic or transversely isotropic reference media (aligned along the 3rd axis).
+- Convergence criteria based on the methods of Bellis and Suquet (2019), as well as stress-criteria criteria for stress-controlled loading.
 
 
